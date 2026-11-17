@@ -4,7 +4,7 @@ preamble-tier: 4
 version: 2.0.0
 description: |
   Use when you test the site, API or CLI and fix bugs.
-  Covers browser/API/CLI/job/worker/webhook bugs and commits verified fixes atomically.
+  Covers browser/API/CLI/job/worker/webhook bugs and verifies repairs. Commit fixes only when requested.
   Fits "qa", "QA", "qa test this", "test this site", "find bugs", "find bugs on site",
   "test and fix", or "fix what's broken".
   Proactively suggest when the user says a feature is ready for testing
@@ -73,18 +73,15 @@ before setup or probes. Keep the selected fix tier; this choice concerns explora
 **On a feature branch without an explicit scope:** Use diff-aware testing of changed
 and adjacent behavior. Select the surface first; absence of a URL never forces a browser.
 
-**Check for clean working tree:**
+**Identify pre-existing changes:**
 
 ```bash
 git status --porcelain
 ```
 
-If dirty, **STOP** and use AskUserQuestion. Explain that a clean tree keeps QA fixes atomic:
-- A) Commit all current changes with a descriptive message before QA (recommended).
-- B) Stash changes, run QA, then pop the stash.
-- C) Abort for manual cleanup.
-
-Execute only the user's choice before continuing setup.
+Inspect existing changes and continue read-only QA on the requested state. Isolate
+authorized repairs from existing edits. Ask when overlapping edits prevent safe
+isolation. Stage or commit only when requested.
 
 **Prepare report artifacts before browser setup.** Resolve any supplied prior report
 and baseline paths before writing. Select the output override or `.gstack/qa-reports`.
@@ -217,7 +214,9 @@ For browser defects only:
 
 {{SECTION:browser-verify}}
 
-### 8d. Commit verified work
+### 8d. Commit verified work when requested
+
+Leave verified fixes unstaged unless commits were requested. Review the staged hunks when committing.
 
 ```bash
 git add <only-verified-source-and-regression-files>

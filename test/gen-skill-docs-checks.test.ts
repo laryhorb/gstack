@@ -35,6 +35,18 @@ beforeAll(async () => {
 afterAll(() => fs.rmSync(base, { recursive: true, force: true }));
 
 describe('generator artifact and dry-run contract', () => {
+  test('metadata validator rejects an invocation policy that disagrees with the source template', () => {
+    for (const [name, expected] of [['gstack-land-and-deploy', false], ['gstack-modernize', false], ['gstack-verify', true]] as const) {
+      const artifact = generated.artifacts.find(a => a.relativePath === `.agents/skills/${name}/agents/openai.yaml`)!;
+      const original = fs.readFileSync(path.join(render, artifact.relativePath), 'utf8');
+      expect(Bun.YAML.parse(original)).toMatchObject({ policy: { allow_implicit_invocation: expected } });
+      const wrong = original.replace(`allow_implicit_invocation: ${expected}`, `allow_implicit_invocation: ${!expected}`);
+      fs.writeFileSync(path.join(base, 'wrong.yaml'), wrong);
+      expect(validateGeneratedArtifact(base, { ...artifact, relativePath: 'wrong.yaml' }))
+        .toContainEqual({ kind: 'invalid', relativePath: 'wrong.yaml', message: `allow_implicit_invocation must match the template policy (${expected})` });
+    }
+  });
+
   test('all host artifacts validate, with canonical links and host exclusions', () => {
     expect([...new Set(generated.artifacts.filter(a => a.host).map(a => a.host))].sort()).toEqual([...ALL_HOST_NAMES].sort());
     expect([...new Set(generated.artifacts.map(a => a.kind))].sort()).toEqual(['asset', 'digest', 'doctor-components', 'index', 'metadata', 'openclaw', 'preamble', 'section', 'skill']);

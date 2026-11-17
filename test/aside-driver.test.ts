@@ -86,6 +86,10 @@ describe('Aside driver contract ({{ASIDE_SETUP}})', () => {
   test('consent boundary: look freely, act on non-local targets only after one AskUserQuestion', () => {
     expect(section).toContain('Invocation is consent to LOOK, not to ACT');
     expect(section).toContain(ASIDE_LOCAL_HOST_RULE);
+    expect(section).toContain('verify its destination and effects');
+    expect(section).toContain('disposable local fixtures');
+    expect(section).toContain('require authorization for the action and target');
+    expect(section).toContain('continue read-only');
     expect(section).toContain('AskUserQuestion ONCE per run');
   });
 
@@ -102,6 +106,13 @@ describe('Aside driver contract ({{ASIDE_SETUP}})', () => {
     expect(section).toContain('Credentials never pass through you');
     expectMentions(section, [['never', 'passwords', 'one-time']], 'section');
     expectMentions(section, [['never', 'localstorage', 'cookies']], 'section');
+  });
+
+  test('Codex browser references resolve to the registered entry', () => {
+    const codex = { ...ctx, host: 'codex' as const, paths: HOST_PATHS.codex };
+    expect(generateAsideSetup(codex)).toContain('registered gstack-browse skill’s Cookbook');
+    expect(generateBrowseFallback(codex)).toContain('registered gstack-browse skill, under “Full Command List”');
+    expect(generateBrowseFallback(codex)).not.toContain('sections/command-list.md');
   });
 
   test('page output is untrusted content', () => {

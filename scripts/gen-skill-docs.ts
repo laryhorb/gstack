@@ -80,6 +80,8 @@ export interface GeneratedArtifact {
   relativePath: string;
   kind: 'skill' | 'section' | 'preamble' | 'metadata' | 'openclaw' | 'index' | 'digest' | 'doctor-components' | 'asset';
   host?: Host;
+  /** Original template for validating host metadata against its declared policy. */
+  metadataTemplate?: string;
 }
 
 export interface GenerationDiagnostic {
@@ -483,13 +485,20 @@ export function extractCodexDefaultPrompt(tmplContent: string): string | undefin
   return value.length > 0 ? value : undefined;
 }
 
-export function generateOpenAIYaml(displayName: string, shortDescription: string, defaultPrompt?: string): string {
+export function allowsImplicitInvocation(template: string): boolean {
+  const frontmatter = template.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  if (!frontmatter) throw new Error('Missing skill template frontmatter');
+  // Templates can contain unresolved placeholders elsewhere in their frontmatter.
+  return !/^manual_only:[ \t]*true[ \t]*(?:#.*)?$/m.test(frontmatter[1]);
+}
+
+export function generateOpenAIYaml(displayName: string, shortDescription: string, defaultPrompt?: string, allowImplicit = true): string {
   return `interface:
   display_name: ${JSON.stringify(displayName)}
   short_description: ${JSON.stringify(shortDescription)}
   default_prompt: ${JSON.stringify(defaultPrompt ?? `Use ${displayName} for this task.`)}
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: ${allowImplicit}
 `;
 }
 
@@ -801,7 +810,7 @@ function processExternalHost(
   // default_prompt comes from the template's codex_default_prompt: key when set.
   const metadata = hostConfig.generation.generateMetadata && !symlinkLoop ? {
     outputPath: path.join(outputDir, 'agents', 'openai.yaml'),
-    content: generateOpenAIYaml(name, condenseOpenAIShortDescription(extractedDescription), extractCodexDefaultPrompt(tmplContent)),
+    content: generateOpenAIYaml(name, condenseOpenAIShortDescription(extractedDescription), extractCodexDefaultPrompt(tmplContent), allowsImplicitInvocation(tmplContent)),
   } : undefined;
 
   return { content: result, outputPath, symlinkLoop, metadata };
@@ -1011,9 +1020,9 @@ export async function runGeneration(settings: GenerationOptions = {}): Promise<G
   const sections = discoverSectionTemplates(ROOT);
   const rel = (outputPath: string) => path.relative(options.outputRoot, outputPath).split(path.sep).join('/');
 
-  function emit(outputPath: string, content: string, kind: GeneratedArtifact['kind'], host?: Host): void {
+  function emit(outputPath: string, content: string, kind: GeneratedArtifact['kind'], host?: Host, metadataTemplate?: string): void {
     const relativePath = rel(outputPath);
-    artifacts.push({ relativePath, kind, ...(host ? { host } : {}) });
+    artifacts.push({ relativePath, kind, ...(host ? { host } : {}), ...(metadataTemplate ? { metadataTemplate } : {}) });
     try {
       if (settings.dryRun) {
         let existing: string | undefined;
@@ -1078,7 +1087,7 @@ export async function runGeneration(settings: GenerationOptions = {}): Promise<G
         }
         emit(result.outputPath, result.content, 'skill', host);
         if (result.autoplanSibling) emit(result.autoplanSibling, result.content, 'skill', host);
-        if (result.metadata) emit(result.metadata.outputPath, result.metadata.content, 'metadata', host);
+        if (result.metadata) emit(result.metadata.outputPath, result.metadata.content, 'metadata', host, template.tmpl);
         if (result.preamble) emit(result.preamble.outputPath, result.preamble.content, 'preamble', host);
         if (skillDir === 'qa') {
           const report = fs.readFileSync(path.join(ROOT, 'qa', 'templates', 'functional-report-template.md'), 'utf-8');

@@ -2951,7 +2951,8 @@ describe('Codex generation (--host codex)', () => {
       const content = fs.readFileSync(metadata, 'utf-8');
       expect(content).toContain(`display_name: "${skill.codexName}"`);
       expect(content).toContain('short_description:');
-      expect(content).toContain('allow_implicit_invocation: true');
+      const expected = !['land-and-deploy', 'modernize'].includes(skill.dir);
+      expect(Bun.YAML.parse(content)).toMatchObject({ policy: { allow_implicit_invocation: expected } });
     }
   });
 

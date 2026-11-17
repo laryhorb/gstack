@@ -219,18 +219,15 @@ before setup or probes. Keep the selected fix tier; this choice concerns explora
 **On a feature branch without an explicit scope:** Use diff-aware testing of changed
 and adjacent behavior. Select the surface first; absence of a URL never forces a browser.
 
-**Check for clean working tree:**
+**Identify pre-existing changes:**
 
 ```bash
 git status --porcelain
 ```
 
-If dirty, **STOP** and use AskUserQuestion. Explain that a clean tree keeps QA fixes atomic:
-- A) Commit all current changes with a descriptive message before QA (recommended).
-- B) Stash changes, run QA, then pop the stash.
-- C) Abort for manual cleanup.
-
-Execute only the user's choice before continuing setup.
+Inspect existing changes and continue read-only QA on the requested state. Isolate
+authorized repairs from existing edits. Ask when overlapping edits prevent safe
+isolation. Stage or commit only when requested.
 
 **Prepare report artifacts before browser setup.** Resolve any supplied prior report
 and baseline paths before writing. Select the output override or `.gstack/qa-reports`.
@@ -416,7 +413,9 @@ For browser defects only:
 > Use this host's installed path, never the product working directory or another host's assets.
 > If missing or unreadable, report a QA setup blocker and its affected probes as blocked; continue other safe probes (independent functional/static checks). Missing/unreadable assets block required QA.
 
-### 8d. Commit verified work
+### 8d. Commit verified work when requested
+
+Leave verified fixes unstaged unless commits were requested. Review the staged hunks when committing.
 
 ```bash
 git add <only-verified-source-and-regression-files>

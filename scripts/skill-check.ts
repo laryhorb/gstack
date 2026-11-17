@@ -9,6 +9,7 @@ import { spawnSync } from 'child_process';
 import { validateSkill, externalHostPathLeaks } from '../test/helpers/skill-parser';
 import { ALL_HOST_CONFIGS } from '../hosts/index';
 import {
+  allowsImplicitInvocation,
   runGeneration,
   type GeneratedArtifact,
 } from './gen-skill-docs';
@@ -59,8 +60,17 @@ export function validateGeneratedArtifact(renderRoot: string, artifact: Generate
       }
     }
     if (artifact.kind === 'metadata') {
-      for (const field of ['display_name:', 'short_description:', 'default_prompt:', 'allow_implicit_invocation: true']) {
+      for (const field of ['display_name:', 'short_description:', 'default_prompt:']) {
         if (!content.includes(field)) invalid(`metadata is missing ${field}`);
+      }
+      if (!artifact.metadataTemplate) {
+        invalid('metadata is missing its source template');
+      } else {
+        const expected = allowsImplicitInvocation(fs.readFileSync(path.join(ROOT, artifact.metadataTemplate), 'utf8'));
+        const metadata = Bun.YAML.parse(content) as { policy?: { allow_implicit_invocation?: unknown } } | null;
+        if (metadata?.policy?.allow_implicit_invocation !== expected) {
+          invalid(`allow_implicit_invocation must match the template policy (${expected})`);
+        }
       }
     }
   } catch (error) {

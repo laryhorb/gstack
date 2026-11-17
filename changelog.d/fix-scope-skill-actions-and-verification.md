@@ -1,0 +1,1 @@
+Readiness questions stay in inspection. A requested pull request includes only identified changes, and QA can inspect an already-dirty working tree. Browser checks verify the destination of local mutations. Codex respects manual-only skills, and verification reports unresolved checks when retries are exhausted.

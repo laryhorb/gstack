@@ -2,7 +2,7 @@
 name: ship
 preamble-tier: 4
 version: 1.0.0
-description: "Ship it: merge the base, run tests, review the diff, bump VERSION and CHANGELOG, push and create a PR. Use for: ship it, create a pr, push to main. (gstack)"
+description: "Publish a requested PR for a named change. Use for: ship it, create a pr. (gstack)"
 allowed-tools:
   - Bash
   - Read
@@ -16,7 +16,6 @@ allowed-tools:
 triggers:
   - ship it
   - create a pr
-  - push to main
 ---
 <!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
 <!-- Regenerate: bun run gen:skill-docs -->
@@ -170,10 +169,8 @@ STOP blocks advancement until the stated repair/resume route clears; without one
 Answer each AskUserQuestion before continuing.
 Routine authorization never waives those gates or their required user decisions.
 
-**Routine work needs no confirmation:** include uncommitted changes, choose MICRO/PATCH
-under Step 12, draft CHANGELOG and commits, mark completed TODOs and auto-fix findings.
-When Step 7 coverage meets its target, report remaining gaps and verify generated
-tests without asking again. Step 15 commits those tests.
+Isolate owned PR changes first. Ask before staging or publishing ambiguous hunks. Preserve unrelated work.
+Routine: MICRO/PATCH (Step 12), CHANGELOG, commits, completed TODOs and auto-fixes. At Step 7's coverage target, report gaps and verify generated tests. Step 15 commits those tests.
 
 **Route:** integrate (1–3) → test and review (4–11.5) → prepare the release
 (12–15) → verify frozen content (16) → push and publish (17–21).
@@ -637,7 +634,7 @@ No edits means an executed audit, not a skip; report the section's verified outc
 
 ## Step 15: Commit (bisectable chunks)
 
-Make bisectable commits; if already committed, continue to Step 16. Never create an empty commit.
+Inspect staged hunks. Make bisectable commits for verified in-scope work. If already committed, continue to Step 16. Never create an empty commit.
 
 1. Group changes with their tests, config/routes, views and Step 14.5 docs;
    migrations may stand alone. Under 50 lines across fewer than 4 files may be one commit.
@@ -684,7 +681,7 @@ Its `STOP:` names the route:
 1. **Behavior, tests or build inputs changed:** Prompts/templates count as behavior.
    Insert `5–11.5 → 12–14 → 16` before the pending Step 17. It excludes Step 14.5 (a rebuild
    can change generated docs; compare before stage 3) and Step 15 (`finish` STOPs on an uncommitted
-   non-release file: commit it per Step 15, rerun). Its Step 9 plans with `gstack-review-plan --post-review`
+   non-release file: commit scoped work per Step 15, isolate the rest, rerun). Its Step 9 plans with `gstack-review-plan --post-review`
    (at the cap: a stop for the owner). A STOP naming a scoped-review packet
    instead takes one reader (no round) and `--context-reviewed` rerun; a blocker is this item.
 2. **Only authored docs or release metadata changed:** Keep Step 8's original child

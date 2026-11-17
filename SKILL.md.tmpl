@@ -84,7 +84,7 @@ quality gates that produce better results than answering inline.
 - User asks about visual polish, design audit of a live site, "this looks off" → invoke `/design-review`
 - User asks to audit the live developer experience, time-to-hello-world → invoke `/devex-review`
 - User asks to run the checks, make the tests pass, "verify my change", "check my work" while building → invoke `/verify`
-- User asks to ship, deploy, push, create a PR, "let's land this", "send it" → invoke `/ship`
+- User requests a PR for an identified change or says “ship it” with that PR destination established → invoke `/ship`. Answer readiness questions by inspecting the change. Use the target’s release runbook for deployments.
 - User asks to merge + deploy + verify as one flow → tell them to type `/land-and-deploy`; never merge or deploy by hand
 - User asks to rebase or revive an old PR, "modernize this PR", whether a stale PR is still worth landing → tell them to type `/modernize`
 - User asks to configure deployment for the project → invoke `/setup-deploy`

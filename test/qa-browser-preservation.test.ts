@@ -222,9 +222,7 @@ describe('compact QA browser recipes retain native operations', () => {
     const section = (start: string, end: string) => source.slice(source.indexOf(start), source.indexOf(end)).replace(/\s+/g, ' ');
     const setup = section('## Setup', '## Phases 1-6:');
     expect(setup).toContain('git status --porcelain');
-    expect(setup).toContain('If dirty, **STOP** and use AskUserQuestion');
-    for (const choice of ['Commit all current changes with a descriptive message', 'Stash changes, run QA, then pop the stash', 'Abort for manual cleanup']) expect(setup).toContain(choice);
-    expectMentions(setup, [['only', 'continuing', 'execute']], 'setup');
+    expectMentions(setup, [['read-only qa', 'existing changes'], ['overlapping edits', 'ask'], ['stage or commit only when requested']], 'setup');
     expectMentions(section('### 8d.', '### 8e.'), [['never', 'regression', 'unrelated']], 'section(### 8d., ### 8e.)');
     const classification = section('### 8e.', '### 8e.5.');
     for (const rule of ['passed 8c', 'native regression when available', 'disclose missing test coverage', "undo only this run's repair", 'revert its commit if already committed', 'retain the valid regression/evidence', '"deferred"', 'Never discard user changes']) expect(classification).toContain(rule);
